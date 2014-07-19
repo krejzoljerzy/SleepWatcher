@@ -8,454 +8,452 @@
  *     GPIO access.
  *
  ****************************************************************************
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* products. This software is supplied "AS IS" without any warranties.
-* NXP Semiconductors assumes no responsibility or liability for the
-* use of the software, conveys no license or title under any patent,
-* copyright, or mask work right to the product. NXP Semiconductors
-* reserves the right to make changes in the software without
-* notification. NXP Semiconductors also make no representation or
-* warranty that such application will be suitable for the specified
-* use without further testing or modification.
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * products. This software is supplied "AS IS" without any warranties.
+ * NXP Semiconductors assumes no responsibility or liability for the
+ * use of the software, conveys no license or title under any patent,
+ * copyright, or mask work right to the product. NXP Semiconductors
+ * reserves the right to make changes in the software without
+ * notification. NXP Semiconductors also make no representation or
+ * warranty that such application will be suitable for the specified
+ * use without further testing or modification.
 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' 
-* relevant copyright in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-****************************************************************************/
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors'
+ * relevant copyright in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ ****************************************************************************/
 #include "LPC11xx.h"			/* LPC11xx Peripheral Registers */
 #include "gpio.h"
+#include "timer32.h"
 #include "board.h"
+#include "events.h"
 
 volatile uint32_t gpio0_counter = 0;
 volatile uint32_t gpio1_counter = 0;
 volatile uint32_t gpio2_counter = 0;
 volatile uint32_t gpio3_counter = 0;
-volatile uint32_t p0_1_counter  = 0;
-volatile uint32_t p1_1_counter  = 0;
-volatile uint32_t p2_1_counter  = 0;
-volatile uint32_t p3_1_counter  = 0;
+volatile uint32_t p0_1_counter = 0;
+volatile uint32_t p1_1_counter = 0;
+volatile uint32_t p2_1_counter = 0;
+volatile uint32_t p3_1_counter = 0;
 
 /*****************************************************************************
-** Function name:		PIOINT0_IRQHandler
-**
-** Descriptions:		Use one GPIO pin(port0 pin1) as interrupt source
-**
-** parameters:			None
-** Returned value:		None
-** 
-*****************************************************************************/
-void PIOINT0_IRQHandler(void)
-{
-  /* Button interrupt */
-  uint32_t regVal;
-  uint32_t buttonTimePress=0;
-  uint32_t delay=0;
+ ** Function name:		PIOINT0_IRQHandler
+ **
+ ** Descriptions:		Use one GPIO pin(port0 pin1) as interrupt source
+ **
+ ** parameters:			None
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void PIOINT0_IRQHandler(void) {
+	/* Button interrupt */
+	uint32_t regVal;
+	uint32_t buttonTimePress = 0;
+	uint32_t delay = 0;
 
-  gpio0_counter++;
-  regVal = GPIOIntStatus( BTN_PORT, BTN_PIN );
-  if ( regVal )
-  {
-	GPIOSetValue(LED1_PORT,LED1_PIN, gpio0_counter%2);
-	while(GPIOGetValue(BTN_PORT,BTN_PIN)==0){
-		buttonTimePress++;
-		__NOP();
-		__NOP();
-		__NOP();
-		__NOP();
-		__NOP();
+	gpio0_counter++;
+	regVal = GPIOIntStatus(BTN_PORT, BTN_PIN);
+	if (regVal) {
+
+		if (GPIOGetValue(BTN_PORT, BTN_PIN) == 0) {
+			enable_timer32(0);
+		} else {
+			buttonTimePress = LPC_TMR32B0 ->TC;
+			buttonTimePress /= 12000;
+			if (buttonTimePress > 2000) {
+				setEvent(BtnHold);
+			} else {
+				setEvent(BtnPressed);
+			}
+			disable_timer32(0);
+			LPC_TMR32B0 ->TC = 0;
+
+		}
+
 	}
-	/* TODO measure time with counter */
-	if (buttonTimePress<1000)
-	{
-		GPIOSetValue(LED1_PORT,LED1_PIN, 0);
+	GPIOIntClear(BTN_PORT, BTN_PIN);
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		PIOINT1_IRQHandler
+ **
+ ** Descriptions:		Use one GPIO pin(port1 pin1) as interrupt source
+ **
+ ** parameters:			None
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void PIOINT1_IRQHandler(void) {
+	uint32_t regVal;
+
+	gpio1_counter++;
+	regVal = GPIOIntStatus(PORT1, 1);
+	if (regVal) {
+		p1_1_counter++;
+		GPIOIntClear(PORT1, 1);
 	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		PIOINT2_IRQHandler
+ **
+ ** Descriptions:		Use one GPIO pin(port2 pin1) as interrupt source
+ **
+ ** parameters:			None
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void PIOINT2_IRQHandler(void) {
+	uint32_t regVal;
+
+	gpio2_counter++;
+	regVal = GPIOIntStatus(PORT2, 1);
+	if (regVal) {
+		p2_1_counter++;
+		GPIOIntClear(PORT2, 1);
+	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		PIOINT3_IRQHandler
+ **
+ ** Descriptions:		Use one GPIO pin(port3 pin1) as interrupt source
+ **
+ ** parameters:			None
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void PIOINT3_IRQHandler(void) {
+	uint32_t regVal;
+
+	gpio3_counter++;
+	regVal = GPIOIntStatus(PORT3, 1);
+	if (regVal) {
+		p3_1_counter++;
+		GPIOIntClear(PORT3, 1);
+	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOInit
+ **
+ ** Descriptions:		Initialize GPIO, install the
+ **						GPIO interrupt handler
+ **
+ ** parameters:			None
+ ** Returned value:		true or false, return false if the VIC table
+ **						is full and GPIO interrupt handler can be
+ **						installed.
+ **
+ *****************************************************************************/
+void GPIOInit(void) {
+	/* Enable AHB clock to the GPIO domain. */
+	LPC_SYSCON ->SYSAHBCLKCTRL |= (1 << 6);
+
+	/* Set up NVIC when I/O pins are configured as external interrupts. */
+	NVIC_EnableIRQ(EINT0_IRQn);
+	NVIC_EnableIRQ(EINT1_IRQn);
+	/*NVIC_EnableIRQ(EINT2_IRQn);
+	 NVIC_EnableIRQ(EINT3_IRQn);*/
+
+	/* Power init */
+	GPIOSetDir(POWER_PORT, POWER_PIN, OUTPUT);
+	GPIOSetValue(POWER_PORT, POWER_PIN, 0);
+
+	/* Enable Hysteresis to eliminate debouncing. */LPC_IOCON ->PIO0_2 |= (0x01
+			<< 5);
+	LPC_IOCON ->PIO1_5 |= (0x01 << 5);
+
+	GPIOSetDir(LED1_PORT, LED1_PIN, OUTPUT);
+	GPIOSetDir(LED2_PORT, LED2_PIN, OUTPUT);
+	GPIOSetDir(POWER_PORT, POWER_PIN, OUTPUT);
+	GPIOSetDir(BTN_PORT, BTN_PIN, INPUT);
+	GPIOSetDir(DETECT_PORT, DETECT_PIN, INPUT);
+
+	GPIOSetValue(LED2_PORT, LED2_PIN, 0);
+
+	/* level sensitive,single edge trigger both, active low - don't care. */
+	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 1, 0);
+	GPIOIntEnable(BTN_PORT, BTN_PIN);
+
+	/* level sensitive,single edge trigger both, active low - don't care. */
+	GPIOSetInterrupt(DETECT_PORT, DETECT_PIN, 0, 1, 0);
+	GPIOIntEnable(DETECT_PORT, DETECT_PIN);
+
+	/* SS signals for memory and sensor */
+	GPIOSetValue(MEM_SS_PORT, MEM_SS_PIN, 1);
+	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
+	GPIOSetDir(MEM_SS_PORT,MEM_SS_PIN,OUTPUT);
+	GPIOSetDir(SEN_SS_PORT,SEN_SS_PIN,OUTPUT);
+
+
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOSetInterrupt
+ **
+ ** Descriptions:		Set interrupt sense, event, etc.
+ **						edge or level, 0 is edge, 1 is level
+ **						single or double edge, 0 is single, 1 is double
+ **						active high or low, etc.
+ **
+ ** parameters:			port num, bit position, sense, single/doube, polarity
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void GPIOSetInterrupt(uint32_t portNum, uint32_t bitPosi, uint32_t sense,
+		uint32_t single, uint32_t event) {
+	switch (portNum) {
+	case PORT0:
+		if (sense == 0) {
+			LPC_GPIO0 ->IS &= ~(0x1 << bitPosi);
+			/* single or double only applies when sense is 0(edge trigger). */
+			if (single == 0)
+				LPC_GPIO0 ->IBE &= ~(0x1 << bitPosi);
+			else
+				LPC_GPIO0 ->IBE |= (0x1 << bitPosi);
+		} else
+			LPC_GPIO0 ->IS |= (0x1 << bitPosi);
+		if (event == 0)
+			LPC_GPIO0 ->IEV &= ~(0x1 << bitPosi);
+		else
+			LPC_GPIO0 ->IEV |= (0x1 << bitPosi);
+		break;
+	case PORT1:
+		if (sense == 0) {
+			LPC_GPIO1 ->IS &= ~(0x1 << bitPosi);
+			/* single or double only applies when sense is 0(edge trigger). */
+			if (single == 0)
+				LPC_GPIO1 ->IBE &= ~(0x1 << bitPosi);
+			else
+				LPC_GPIO1 ->IBE |= (0x1 << bitPosi);
+		} else
+			LPC_GPIO1 ->IS |= (0x1 << bitPosi);
+		if (event == 0)
+			LPC_GPIO1 ->IEV &= ~(0x1 << bitPosi);
+		else
+			LPC_GPIO1 ->IEV |= (0x1 << bitPosi);
+		break;
+	case PORT2:
+		if (sense == 0) {
+			LPC_GPIO2 ->IS &= ~(0x1 << bitPosi);
+			/* single or double only applies when sense is 0(edge trigger). */
+			if (single == 0)
+				LPC_GPIO2 ->IBE &= ~(0x1 << bitPosi);
+			else
+				LPC_GPIO2 ->IBE |= (0x1 << bitPosi);
+		} else
+			LPC_GPIO2 ->IS |= (0x1 << bitPosi);
+		if (event == 0)
+			LPC_GPIO2 ->IEV &= ~(0x1 << bitPosi);
+		else
+			LPC_GPIO2 ->IEV |= (0x1 << bitPosi);
+		break;
+	case PORT3:
+		if (sense == 0) {
+			LPC_GPIO3 ->IS &= ~(0x1 << bitPosi);
+			/* single or double only applies when sense is 0(edge trigger). */
+			if (single == 0)
+				LPC_GPIO3 ->IBE &= ~(0x1 << bitPosi);
+			else
+				LPC_GPIO3 ->IBE |= (0x1 << bitPosi);
+		} else
+			LPC_GPIO3 ->IS |= (0x1 << bitPosi);
+		if (event == 0)
+			LPC_GPIO3 ->IEV &= ~(0x1 << bitPosi);
+		else
+			LPC_GPIO3 ->IEV |= (0x1 << bitPosi);
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOIntEnable
+ **
+ ** Descriptions:		Enable Interrupt Mask for a port pin.
+ **
+ ** parameters:			port num, bit position
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void GPIOIntEnable(uint32_t portNum, uint32_t bitPosi) {
+	switch (portNum) {
+	case PORT0:
+		LPC_GPIO0 ->IE |= (0x1 << bitPosi);
+		break;
+	case PORT1:
+		LPC_GPIO1 ->IE |= (0x1 << bitPosi);
+		break;
+	case PORT2:
+		LPC_GPIO2 ->IE |= (0x1 << bitPosi);
+		break;
+	case PORT3:
+		LPC_GPIO3 ->IE |= (0x1 << bitPosi);
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOIntDisable
+ **
+ ** Descriptions:		Disable Interrupt Mask for a port pin.
+ **
+ ** parameters:			port num, bit position
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void GPIOIntDisable(uint32_t portNum, uint32_t bitPosi) {
+	switch (portNum) {
+	case PORT0:
+		LPC_GPIO0 ->IE &= ~(0x1 << bitPosi);
+		break;
+	case PORT1:
+		LPC_GPIO1 ->IE &= ~(0x1 << bitPosi);
+		break;
+	case PORT2:
+		LPC_GPIO2 ->IE &= ~(0x1 << bitPosi);
+		break;
+	case PORT3:
+		LPC_GPIO3 ->IE &= ~(0x1 << bitPosi);
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOIntStatus
+ **
+ ** Descriptions:		Get Interrupt status for a port pin.
+ **
+ ** parameters:			port num, bit position
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+uint32_t GPIOIntStatus(uint32_t portNum, uint32_t bitPosi) {
+	uint32_t regVal = 0;
+
+	switch (portNum) {
+	case PORT0:
+		if (LPC_GPIO0 ->MIS & (0x1 << bitPosi))
+			regVal = 1;
+		break;
+	case PORT1:
+		if (LPC_GPIO1 ->MIS & (0x1 << bitPosi))
+			regVal = 1;
+		break;
+	case PORT2:
+		if (LPC_GPIO2 ->MIS & (0x1 << bitPosi))
+			regVal = 1;
+		break;
+	case PORT3:
+		if (LPC_GPIO3 ->MIS & (0x1 << bitPosi))
+			regVal = 1;
+		break;
+	default:
+		break;
+	}
+	return (regVal);
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOIntClear
+ **
+ ** Descriptions:		Clear Interrupt for a port pin.
+ **
+ ** parameters:			port num, bit position
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void GPIOIntClear(uint32_t portNum, uint32_t bitPosi) {
+	switch (portNum) {
+	case PORT0:
+		LPC_GPIO0 ->IC |= (0x1 << bitPosi);
+		break;
+	case PORT1:
+		LPC_GPIO1 ->IC |= (0x1 << bitPosi);
+		break;
+	case PORT2:
+		LPC_GPIO2 ->IC |= (0x1 << bitPosi);
+		break;
+	case PORT3:
+		LPC_GPIO3 ->IC |= (0x1 << bitPosi);
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOGetValue
+ **
+ ** Descriptions:		Read Current state of port pin, PIN register value
+ **
+ ** parameters:			port num, bit position
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+uint32_t GPIOGetValue(uint32_t portNum, uint32_t bitPosi) {
+	uint32_t regVal = 0;
+
+	if (bitPosi < 0x20) {
+		if (LPC_GPIO[portNum]->DATA & (0x1 << bitPosi)) {
+			regVal = 1;
+		}
+	} else if (bitPosi == 0xFF) {
+		regVal = LPC_GPIO[portNum]->DATA;
+	}
+	return (regVal);
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOSetValue
+ **
+ ** Descriptions:		Set/clear a bitvalue in a specific bit position
+ **						in GPIO portX(X is the port number.)
+ **
+ ** parameters:			port num, bit position, bit value
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void GPIOSetValue(uint32_t portNum, uint32_t bitPosi, uint32_t bitVal) {
+	LPC_GPIO[portNum]->MASKED_ACCESS[(1 << bitPosi)] = (bitVal << bitPosi);
+}
+
+/*****************************************************************************
+ ** Function name:		GPIOSetDir
+ **
+ ** Descriptions:		Set the direction in GPIO port
+ **
+ ** parameters:			port num, bit position, direction (1 out, 0 input)
+ ** Returned value:		None
+ **
+ *****************************************************************************/
+void GPIOSetDir(uint32_t portNum, uint32_t bitPosi, uint32_t dir) {
+	if (dir)
+		LPC_GPIO[portNum]->DIR |= 1 << bitPosi;
 	else
-	{
-		GPIOSetValue(LED2_PORT,LED2_PIN, 0);
-	}
-	GPIOIntClear( BTN_PORT, BTN_PORT );
-  }		
-  return;
-}
-
-/*****************************************************************************
-** Function name:		PIOINT1_IRQHandler
-**
-** Descriptions:		Use one GPIO pin(port1 pin1) as interrupt source
-**
-** parameters:			None
-** Returned value:		None
-** 
-*****************************************************************************/
-void PIOINT1_IRQHandler(void)
-{
-  uint32_t regVal;
-
-  gpio1_counter++;
-  regVal = GPIOIntStatus( PORT1, 1 );
-  if ( regVal )
-  {
-	p1_1_counter++;
-	GPIOIntClear( PORT1, 1 );
-  }		
-  return;
-}
-
-/*****************************************************************************
-** Function name:		PIOINT2_IRQHandler
-**
-** Descriptions:		Use one GPIO pin(port2 pin1) as interrupt source
-**
-** parameters:			None
-** Returned value:		None
-** 
-*****************************************************************************/
-void PIOINT2_IRQHandler(void)
-{
-  uint32_t regVal;
-
-  gpio2_counter++;
-  regVal = GPIOIntStatus( PORT2, 1 );
-  if ( regVal )
-  {
-	p2_1_counter++;
-	GPIOIntClear( PORT2, 1 );
-  }		
-  return;
-}
-
-/*****************************************************************************
-** Function name:		PIOINT3_IRQHandler
-**
-** Descriptions:		Use one GPIO pin(port3 pin1) as interrupt source
-**
-** parameters:			None
-** Returned value:		None
-** 
-*****************************************************************************/
-void PIOINT3_IRQHandler(void)
-{
-  uint32_t regVal;
-
-  gpio3_counter++;
-  regVal = GPIOIntStatus( PORT3, 1 );
-  if ( regVal )
-  {
-	p3_1_counter++;
-	GPIOIntClear( PORT3, 1 );
-  }		
-  return;
-}
-
-/*****************************************************************************
-** Function name:		GPIOInit
-**
-** Descriptions:		Initialize GPIO, install the
-**						GPIO interrupt handler
-**
-** parameters:			None
-** Returned value:		true or false, return false if the VIC table
-**						is full and GPIO interrupt handler can be
-**						installed.
-** 
-*****************************************************************************/
-void GPIOInit( void )
-{
-  /* Enable AHB clock to the GPIO domain. */
-  LPC_SYSCON->SYSAHBCLKCTRL |= (1<<6);
-
-  /* Set up NVIC when I/O pins are configured as external interrupts. */
- /* NVIC_EnableIRQ(EINT0_IRQn);*/
-  NVIC_EnableIRQ(EINT0_IRQn);
-  /*NVIC_EnableIRQ(EINT2_IRQn);
-  NVIC_EnableIRQ(EINT3_IRQn);*/
-  return;
-}
-
-/*****************************************************************************
-** Function name:		GPIOSetInterrupt
-**
-** Descriptions:		Set interrupt sense, event, etc.
-**						edge or level, 0 is edge, 1 is level
-**						single or double edge, 0 is single, 1 is double 
-**						active high or low, etc.
-**
-** parameters:			port num, bit position, sense, single/doube, polarity
-** Returned value:		None
-** 
-*****************************************************************************/
-void GPIOSetInterrupt( uint32_t portNum, uint32_t bitPosi, uint32_t sense,
-			uint32_t single, uint32_t event )
-{
-  switch ( portNum )
-  {
-	case PORT0:
-	  if ( sense == 0 )
-	  {
-		LPC_GPIO0->IS &= ~(0x1<<bitPosi);
-		/* single or double only applies when sense is 0(edge trigger). */
-		if ( single == 0 )
-		  LPC_GPIO0->IBE &= ~(0x1<<bitPosi);
-		else
-		  LPC_GPIO0->IBE |= (0x1<<bitPosi);
-	  }
-	  else
-	  	LPC_GPIO0->IS |= (0x1<<bitPosi);
-	  if ( event == 0 )
-		LPC_GPIO0->IEV &= ~(0x1<<bitPosi);
-	  else
-		LPC_GPIO0->IEV |= (0x1<<bitPosi);
-	break;
- 	case PORT1:
-	  if ( sense == 0 )
-	  {
-		LPC_GPIO1->IS &= ~(0x1<<bitPosi);
-		/* single or double only applies when sense is 0(edge trigger). */
-		if ( single == 0 )
-		  LPC_GPIO1->IBE &= ~(0x1<<bitPosi);
-		else
-		  LPC_GPIO1->IBE |= (0x1<<bitPosi);
-	  }
-	  else
-	  	LPC_GPIO1->IS |= (0x1<<bitPosi);
-	  if ( event == 0 )
-		LPC_GPIO1->IEV &= ~(0x1<<bitPosi);
-	  else
-		LPC_GPIO1->IEV |= (0x1<<bitPosi);  
-	break;
-	case PORT2:
-	  if ( sense == 0 )
-	  {
-		LPC_GPIO2->IS &= ~(0x1<<bitPosi);
-		/* single or double only applies when sense is 0(edge trigger). */
-		if ( single == 0 )
-		  LPC_GPIO2->IBE &= ~(0x1<<bitPosi);
-		else
-		  LPC_GPIO2->IBE |= (0x1<<bitPosi);
-	  }
-	  else
-	  	LPC_GPIO2->IS |= (0x1<<bitPosi);
-	  if ( event == 0 )
-		LPC_GPIO2->IEV &= ~(0x1<<bitPosi);
-	  else
-		LPC_GPIO2->IEV |= (0x1<<bitPosi);  
-	break;
-	case PORT3:
-	  if ( sense == 0 )
-	  {
-		LPC_GPIO3->IS &= ~(0x1<<bitPosi);
-		/* single or double only applies when sense is 0(edge trigger). */
-		if ( single == 0 )
-		  LPC_GPIO3->IBE &= ~(0x1<<bitPosi);
-		else
-		  LPC_GPIO3->IBE |= (0x1<<bitPosi);
-	  }
-	  else
-	  	LPC_GPIO3->IS |= (0x1<<bitPosi);
-	  if ( event == 0 )
-		LPC_GPIO3->IEV &= ~(0x1<<bitPosi);
-	  else
-		LPC_GPIO3->IEV |= (0x1<<bitPosi);	  
-	break;
-	default:
-	  break;
-  }
-  return;
-}
-
-/*****************************************************************************
-** Function name:		GPIOIntEnable
-**
-** Descriptions:		Enable Interrupt Mask for a port pin.
-**
-** parameters:			port num, bit position
-** Returned value:		None
-** 
-*****************************************************************************/
-void GPIOIntEnable( uint32_t portNum, uint32_t bitPosi )
-{
-  switch ( portNum )
-  {
-	case PORT0:
-	  LPC_GPIO0->IE |= (0x1<<bitPosi); 
-	break;
- 	case PORT1:
-	  LPC_GPIO1->IE |= (0x1<<bitPosi);	
-	break;
-	case PORT2:
-	  LPC_GPIO2->IE |= (0x1<<bitPosi);	    
-	break;
-	case PORT3:
-	  LPC_GPIO3->IE |= (0x1<<bitPosi);	    
-	break;
-	default:
-	  break;
-  }
-  return;
-}
-
-/*****************************************************************************
-** Function name:		GPIOIntDisable
-**
-** Descriptions:		Disable Interrupt Mask for a port pin.
-**
-** parameters:			port num, bit position
-** Returned value:		None
-** 
-*****************************************************************************/
-void GPIOIntDisable( uint32_t portNum, uint32_t bitPosi )
-{
-  switch ( portNum )
-  {
-	case PORT0:
-	  LPC_GPIO0->IE &= ~(0x1<<bitPosi); 
-	break;
- 	case PORT1:
-	  LPC_GPIO1->IE &= ~(0x1<<bitPosi);	
-	break;
-	case PORT2:
-	  LPC_GPIO2->IE &= ~(0x1<<bitPosi);	    
-	break;
-	case PORT3:
-	  LPC_GPIO3->IE &= ~(0x1<<bitPosi);	    
-	break;
-	default:
-	  break;
-  }
-  return;
-}
-
-/*****************************************************************************
-** Function name:		GPIOIntStatus
-**
-** Descriptions:		Get Interrupt status for a port pin.
-**
-** parameters:			port num, bit position
-** Returned value:		None
-** 
-*****************************************************************************/
-uint32_t GPIOIntStatus( uint32_t portNum, uint32_t bitPosi )
-{
-  uint32_t regVal = 0;
-
-  switch ( portNum )
-  {
-	case PORT0:
-	  if ( LPC_GPIO0->MIS & (0x1<<bitPosi) )
-		regVal = 1;
-	break;
- 	case PORT1:
-	  if ( LPC_GPIO1->MIS & (0x1<<bitPosi) )
-		regVal = 1;	
-	break;
-	case PORT2:
-	  if ( LPC_GPIO2->MIS & (0x1<<bitPosi) )
-		regVal = 1;		    
-	break;
-	case PORT3:
-	  if ( LPC_GPIO3->MIS & (0x1<<bitPosi) )
-		regVal = 1;		    
-	break;
-	default:
-	  break;
-  }
-  return ( regVal );
-}
-
-/*****************************************************************************
-** Function name:		GPIOIntClear
-**
-** Descriptions:		Clear Interrupt for a port pin.
-**
-** parameters:			port num, bit position
-** Returned value:		None
-** 
-*****************************************************************************/
-void GPIOIntClear( uint32_t portNum, uint32_t bitPosi )
-{
-  switch ( portNum )
-  {
-	case PORT0:
-	  LPC_GPIO0->IC |= (0x1<<bitPosi); 
-	break;
- 	case PORT1:
-	  LPC_GPIO1->IC |= (0x1<<bitPosi);	
-	break;
-	case PORT2:
-	  LPC_GPIO2->IC |= (0x1<<bitPosi);	    
-	break;
-	case PORT3:
-	  LPC_GPIO3->IC |= (0x1<<bitPosi);	    
-	break;
-	default:
-	  break;
-  }
-  return;
-}
-
-/*****************************************************************************
-** Function name:		GPIOGetValue
-**
-** Descriptions:		Read Current state of port pin, PIN register value
-**
-** parameters:			port num, bit position
-** Returned value:		None
-**
-*****************************************************************************/
-uint32_t GPIOGetValue( uint32_t portNum, uint32_t bitPosi )
-{
-  uint32_t regVal = 0;	
-
-  if( bitPosi < 0x20 )
-  {	
-	if ( LPC_GPIO[portNum]->DATA & (0x1<<bitPosi) )
-	{
-	  regVal = 1;
-	}
-  }
-  else if( bitPosi == 0xFF )
-  {
-	regVal = LPC_GPIO[portNum]->DATA;
-  }
-  return ( regVal );		
-}
-
-/*****************************************************************************
-** Function name:		GPIOSetValue
-**
-** Descriptions:		Set/clear a bitvalue in a specific bit position
-**						in GPIO portX(X is the port number.)
-**
-** parameters:			port num, bit position, bit value
-** Returned value:		None
-**
-*****************************************************************************/
-void GPIOSetValue( uint32_t portNum, uint32_t bitPosi, uint32_t bitVal )
-{
-  LPC_GPIO[portNum]->MASKED_ACCESS[(1<<bitPosi)] = (bitVal<<bitPosi);
-}
-
-/*****************************************************************************
-** Function name:		GPIOSetDir
-**
-** Descriptions:		Set the direction in GPIO port
-**
-** parameters:			port num, bit position, direction (1 out, 0 input)
-** Returned value:		None
-**
-*****************************************************************************/
-void GPIOSetDir( uint32_t portNum, uint32_t bitPosi, uint32_t dir )
-{
-  if(dir)
-	LPC_GPIO[portNum]->DIR |= 1<<bitPosi;
-  else
-	LPC_GPIO[portNum]->DIR &= ~(1<<bitPosi);
+		LPC_GPIO[portNum]->DIR &= ~(1 << bitPosi);
 }
 
 /******************************************************************************
-**                            End Of File
-******************************************************************************/
+ **                            End Of File
+ ******************************************************************************/

@@ -14,6 +14,8 @@
 
 #include "gpio.h"
 #include "board.h"
+#include "timer32.h"
+#include "events.h"
 
 #include <cr_section_macros.h>
 
@@ -27,32 +29,38 @@ int main(void) {
 
 	GPIOInit();
 
-	/* Enable Hysteresis to eliminate debouncing. */
+	TIMInit(0, 0);
 
-	LPC_IOCON ->PIO0_2 |= (0x01 << 5);
-
-	GPIOSetDir(LED1_PORT, LED1_PIN, OUTPUT);
-	GPIOSetDir(LED2_PORT, LED2_PIN, OUTPUT);
-	GPIOSetDir(POWER_PORT, POWER_PIN, OUTPUT);
-	GPIOSetDir(BTN_PORT, BTN_PIN, INPUT);
-	GPIOSetDir(DETECT_PORT, DETECT_PIN, INPUT);
-
-	/* level sensitive,single edge trigger (don't care), active low. */
-	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 1, 0, 0);
-	GPIOIntEnable(BTN_PORT, BTN_PIN);
-	/* level sensitive,single edge trigger (don't care), active high. */
-	GPIOSetInterrupt(DETECT_PORT, DETECT_PIN, 1, 0, 1);
-	GPIOIntEnable(DETECT_PORT, DETECT_PIN);
-
-
+	SSP_IOConfig(SSP_NUM); /* initialize SSP port, share pins with SPI1
+	 on port2(p2.0-3). */
+	SSP_Init(SSP_NUM);
 
 	// TODO: insert code here
 
 	// Force the counter to be placed into memory
-	volatile static int i = 0;
 	// Enter an infinite loop, just incrementing a counter
+	// Dispatch events.
+	uint8_t bufferTX [1];
+	bufferTX[0] = 0x9F;
+	uint8_t bufferRX[3]={0};
+	GPIOSetValue(MEM_SS_PORT,MEM_SS_PIN,0);
+
+	SSP_Send(SSP_NUM,bufferTX,1);
+	SSP_Receive(SSP_NUM,bufferRX,3);
+
+	GPIOSetValue(MEM_SS_PORT,MEM_SS_PIN,1);
 	while (1) {
-		i++;
+
+		if (checkEvent(BtnPressed)) {
+			// Start measuring.
+
+		}
+		if (checkEvent(BtnHold)) {
+			// Turn off device.
+			clearEvent(BtnHold);
+			GPIOSetValue(POWER_PORT, POWER_PIN, 1);
+		}
+
 	}
 	return 0;
 }

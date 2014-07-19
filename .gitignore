@@ -1,0 +1,9 @@
+.metadata/
+Blinky
+gpio/
+SSP
+WDT/
+UART/
+timer32/
+SleepWatcher_v0.0/Debug
+CMSISv2p00_LPC11xx/Debug
