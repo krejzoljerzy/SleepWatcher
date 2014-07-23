@@ -50,6 +50,7 @@ void reset_timer32(uint8_t timer_num);
 void init_timer32(uint8_t timer_num, uint32_t timerInterval);
 void init_timer32PWM(uint8_t timer_num, uint32_t period, uint8_t match_enable);
 void setMatch_timer32PWM (uint8_t timer_num, uint8_t match_nr, uint32_t value);
+void TIMInit(uint8_t timer_num, uint32_t TimerInterval);
 
 #endif /* end __TIMER32_H */
 /*****************************************************************************

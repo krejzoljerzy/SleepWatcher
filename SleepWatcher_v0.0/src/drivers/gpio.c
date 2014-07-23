@@ -59,7 +59,11 @@ void PIOINT0_IRQHandler(void) {
 	gpio0_counter++;
 	regVal = GPIOIntStatus(BTN_PORT, BTN_PIN);
 	if (regVal) {
-
+		GPIOSetValue(LED1_PORT, LED1_PIN, 0);
+		for (delay=0;delay<20;delay++){
+			__NOP();__NOP();__NOP();__NOP();__NOP();
+		}
+		GPIOSetValue(LED1_PORT, LED1_PIN, 1);
 		if (GPIOGetValue(BTN_PORT, BTN_PIN) == 0) {
 			enable_timer32(0);
 		} else {
@@ -159,6 +163,7 @@ void GPIOInit(void) {
 	/* Enable AHB clock to the GPIO domain. */
 	LPC_SYSCON ->SYSAHBCLKCTRL |= (1 << 6);
 
+
 	/* Set up NVIC when I/O pins are configured as external interrupts. */
 	NVIC_EnableIRQ(EINT0_IRQn);
 	NVIC_EnableIRQ(EINT1_IRQn);
@@ -179,10 +184,10 @@ void GPIOInit(void) {
 	GPIOSetDir(BTN_PORT, BTN_PIN, INPUT);
 	GPIOSetDir(DETECT_PORT, DETECT_PIN, INPUT);
 
-	GPIOSetValue(LED2_PORT, LED2_PIN, 0);
+	GPIOSetValue(LED2_PORT, LED2_PIN, 1);
 
 	/* level sensitive,single edge trigger both, active low - don't care. */
-	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 1, 0);
+	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 0, 0);
 	GPIOIntEnable(BTN_PORT, BTN_PIN);
 
 	/* level sensitive,single edge trigger both, active low - don't care. */
@@ -190,10 +195,14 @@ void GPIOInit(void) {
 	GPIOIntEnable(DETECT_PORT, DETECT_PIN);
 
 	/* SS signals for memory and sensor */
-	GPIOSetValue(MEM_SS_PORT, MEM_SS_PIN, 1);
-	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
+	/* Select GPIO function */
+	LPC_IOCON->R_PIO1_0 |= 1;
+	LPC_IOCON->R_PIO1_1 |= 1;
 	GPIOSetDir(MEM_SS_PORT,MEM_SS_PIN,OUTPUT);
 	GPIOSetDir(SEN_SS_PORT,SEN_SS_PIN,OUTPUT);
+	GPIOSetValue(MEM_SS_PORT, MEM_SS_PIN, 1);
+	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
+
 
 
 	return;
