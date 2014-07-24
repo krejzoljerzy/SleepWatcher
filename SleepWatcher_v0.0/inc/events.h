@@ -1,6 +1,7 @@
 typedef enum {
 	BtnHold=0,
-	BtnPressed
+	BtnPressed,
+	PowerOff
 }event_t;
 
 typedef struct{

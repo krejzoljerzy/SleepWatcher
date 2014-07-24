@@ -66,15 +66,17 @@ void PIOINT0_IRQHandler(void) {
 		GPIOSetValue(LED1_PORT, LED1_PIN, 1);
 		if (GPIOGetValue(BTN_PORT, BTN_PIN) == 0) {
 			enable_timer32(0);
+			LED1_TOGGLE;
 		} else {
-			buttonTimePress = LPC_TMR32B0 ->TC;
-			buttonTimePress /= 12000;
-			if (buttonTimePress > 2000) {
-				setEvent(BtnHold);
+
+			if (checkEvent(BtnHold)) {
+				clearEvent(BtnHold);
+				setEvent(PowerOff);
 			} else {
 				setEvent(BtnPressed);
 			}
 			disable_timer32(0);
+			reset_timer32(0);
 			LPC_TMR32B0 ->TC = 0;
 
 		}
@@ -171,10 +173,11 @@ void GPIOInit(void) {
 	 NVIC_EnableIRQ(EINT3_IRQn);*/
 
 	/* Power init */
-	GPIOSetDir(POWER_PORT, POWER_PIN, OUTPUT);
-	GPIOSetValue(POWER_PORT, POWER_PIN, 0);
 
-	/* Enable Hysteresis to eliminate debouncing. */LPC_IOCON ->PIO0_2 |= (0x01
+	GPIOSetDir(POWER_PORT, POWER_PIN, OUTPUT);
+
+	/* Enable Hysteresis to eliminate debouncing. */
+	LPC_IOCON ->PIO0_2 |= (0x01
 			<< 5);
 	LPC_IOCON ->PIO1_5 |= (0x01 << 5);
 
@@ -184,8 +187,11 @@ void GPIOInit(void) {
 	GPIOSetDir(BTN_PORT, BTN_PIN, INPUT);
 	GPIOSetDir(DETECT_PORT, DETECT_PIN, INPUT);
 
+<<<<<<< origin/master
 	GPIOSetValue(LED2_PORT, LED2_PIN, 1);
 
+=======
+>>>>>>> local
 	/* level sensitive,single edge trigger both, active low - don't care. */
 	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 0, 0);
 	GPIOIntEnable(BTN_PORT, BTN_PIN);
@@ -195,6 +201,7 @@ void GPIOInit(void) {
 	GPIOIntEnable(DETECT_PORT, DETECT_PIN);
 
 	/* SS signals for memory and sensor */
+<<<<<<< origin/master
 	/* Select GPIO function */
 	LPC_IOCON->R_PIO1_0 |= 1;
 	LPC_IOCON->R_PIO1_1 |= 1;
@@ -204,6 +211,14 @@ void GPIOInit(void) {
 	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
 
 
+=======
+	LPC_IOCON ->R_PIO1_0 |= 1;
+	LPC_IOCON ->R_PIO1_1 |= 1;
+	GPIOSetValue(MEM_SS_PORT, MEM_SS_PIN, 1);
+	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
+	GPIOSetDir(MEM_SS_PORT, MEM_SS_PIN, OUTPUT);
+	GPIOSetDir(SEN_SS_PORT, SEN_SS_PIN, OUTPUT);
+>>>>>>> local
 
 	return;
 }

@@ -17,6 +17,10 @@
 #include "timer32.h"
 #include "events.h"
 #include "ssp.h"
+<<<<<<< origin/master
+=======
+#include "uart.h"
+>>>>>>> local
 
 #include <cr_section_macros.h>
 
@@ -30,11 +34,18 @@ int main(void) {
 
 	GPIOInit();
 
-	TIMInit(0, 0);
+
+
+	TIMInit(0, 2*SystemCoreClock); // 120000000/12000*2000 = 2000ms
+	TIMInit(1, SystemCoreClock); // 120000000/12000*2000 = 2000ms
+
+	POWER_ON;
+	LED1_ON;
 
 	SSP_IOConfig(SSP_NUM); /* initialize SSP port, share pins with SPI1
 	 on port2(p2.0-3). */
 	SSP_Init(SSP_NUM);
+	UARTInit(115200);
 
 	// TODO: insert code here
 
@@ -58,12 +69,21 @@ int main(void) {
 			//GPIOSetValue(LED1_PORT, LED1_PIN, ~GPIOGetValue(LED1_PORT,LED1_PIN)&0x1);
 			clearEvent(BtnPressed);
 
+			UARTSend("krotko\r\n",8);
+			clearEvent(BtnPressed);
 		}
-		if (checkEvent(BtnHold)) {
+		if (checkEvent(PowerOff)) {
 			// Turn off device.
+<<<<<<< origin/master
 			clearEvent(BtnHold);
 			//GPIOSetValue(LED2_PORT, LED2_PIN, ~GPIOGetValue(LED2_PORT,LED2_PIN)&0x1);
 			//GPIOSetValue(POWER_PORT, POWER_PIN, 1);
+=======
+			LED2_OFF;
+			UARTSend("dlugo\r\n",7);
+			clearEvent(PowerOff);
+
+>>>>>>> local
 		}
 
 	}
