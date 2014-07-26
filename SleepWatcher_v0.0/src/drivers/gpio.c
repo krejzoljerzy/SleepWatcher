@@ -187,11 +187,6 @@ void GPIOInit(void) {
 	GPIOSetDir(BTN_PORT, BTN_PIN, INPUT);
 	GPIOSetDir(DETECT_PORT, DETECT_PIN, INPUT);
 
-<<<<<<< origin/master
-	GPIOSetValue(LED2_PORT, LED2_PIN, 1);
-
-=======
->>>>>>> local
 	/* level sensitive,single edge trigger both, active low - don't care. */
 	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 0, 0);
 	GPIOIntEnable(BTN_PORT, BTN_PIN);
@@ -201,24 +196,12 @@ void GPIOInit(void) {
 	GPIOIntEnable(DETECT_PORT, DETECT_PIN);
 
 	/* SS signals for memory and sensor */
-<<<<<<< origin/master
-	/* Select GPIO function */
-	LPC_IOCON->R_PIO1_0 |= 1;
-	LPC_IOCON->R_PIO1_1 |= 1;
-	GPIOSetDir(MEM_SS_PORT,MEM_SS_PIN,OUTPUT);
-	GPIOSetDir(SEN_SS_PORT,SEN_SS_PIN,OUTPUT);
-	GPIOSetValue(MEM_SS_PORT, MEM_SS_PIN, 1);
-	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
-
-
-=======
 	LPC_IOCON ->R_PIO1_0 |= 1;
 	LPC_IOCON ->R_PIO1_1 |= 1;
 	GPIOSetValue(MEM_SS_PORT, MEM_SS_PIN, 1);
 	GPIOSetValue(SEN_SS_PORT, SEN_SS_PIN, 1);
 	GPIOSetDir(MEM_SS_PORT, MEM_SS_PIN, OUTPUT);
 	GPIOSetDir(SEN_SS_PORT, SEN_SS_PIN, OUTPUT);
->>>>>>> local
 
 	return;
 }

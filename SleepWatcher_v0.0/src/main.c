@@ -17,10 +17,7 @@
 #include "timer32.h"
 #include "events.h"
 #include "ssp.h"
-<<<<<<< origin/master
-=======
 #include "uart.h"
->>>>>>> local
 
 #include <cr_section_macros.h>
 
@@ -40,7 +37,7 @@ int main(void) {
 	TIMInit(1, SystemCoreClock); // 120000000/12000*2000 = 2000ms
 
 	POWER_ON;
-	LED1_ON;
+	LED1_BLINK;
 
 	SSP_IOConfig(SSP_NUM); /* initialize SSP port, share pins with SPI1
 	 on port2(p2.0-3). */
@@ -74,16 +71,10 @@ int main(void) {
 		}
 		if (checkEvent(PowerOff)) {
 			// Turn off device.
-<<<<<<< origin/master
-			clearEvent(BtnHold);
-			//GPIOSetValue(LED2_PORT, LED2_PIN, ~GPIOGetValue(LED2_PORT,LED2_PIN)&0x1);
-			//GPIOSetValue(POWER_PORT, POWER_PIN, 1);
-=======
 			LED2_OFF;
 			UARTSend("dlugo\r\n",7);
 			clearEvent(PowerOff);
 
->>>>>>> local
 		}
 
 	}
