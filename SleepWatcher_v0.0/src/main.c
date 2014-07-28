@@ -72,6 +72,7 @@ int main(void) {
 		if (checkEvent(PowerOff)) {
 			// Turn off device.
 			LED2_OFF;
+			POWER_OFF;
 			UARTSend("dlugo\r\n",7);
 			clearEvent(PowerOff);
 

@@ -136,7 +136,7 @@
 	<storageModule moduleId="com.crt.config">
 		<projectStorage>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&#13;
 &lt;TargetConfig&gt;&#13;
-&lt;Properties property_0="" property_2="LPC11_12_13_8K_2K.cfx" property_3="NXP" property_4="LPC1111/101" property_count="5" version="60100"/&gt;&#13;
+&lt;Properties property_0="" property_2="LPC11_12_13_8K_2K.cfx" property_3="NXP" property_4="LPC1111/101" property_count="5" version="70200"/&gt;&#13;
 &lt;infoList vendor="NXP"&gt;&lt;info chip="LPC1111/101" flash_driver="LPC11_12_13_8K_2K.cfx" match_id="0x041e502b,0x2516D02B" name="LPC1111/101" stub="crt_emu_lpc11_13_nxp"&gt;&lt;chip&gt;&lt;name&gt;LPC1111/101&lt;/name&gt;&#13;
 &lt;family&gt;LPC11xx&lt;/family&gt;&#13;
 &lt;vendor&gt;NXP (formerly Philips)&lt;/vendor&gt;&#13;

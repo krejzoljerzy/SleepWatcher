@@ -59,14 +59,9 @@ void PIOINT0_IRQHandler(void) {
 	gpio0_counter++;
 	regVal = GPIOIntStatus(BTN_PORT, BTN_PIN);
 	if (regVal) {
-		GPIOSetValue(LED1_PORT, LED1_PIN, 0);
-		for (delay=0;delay<20;delay++){
-			__NOP();__NOP();__NOP();__NOP();__NOP();
-		}
-		GPIOSetValue(LED1_PORT, LED1_PIN, 1);
+
 		if (GPIOGetValue(BTN_PORT, BTN_PIN) == 0) {
 			enable_timer32(0);
-			LED1_TOGGLE;
 		} else {
 
 			if (checkEvent(BtnHold)) {
@@ -177,9 +172,9 @@ void GPIOInit(void) {
 	GPIOSetDir(POWER_PORT, POWER_PIN, OUTPUT);
 
 	/* Enable Hysteresis to eliminate debouncing. */
-	LPC_IOCON ->PIO0_2 |= (0x01
-			<< 5);
-	LPC_IOCON ->PIO1_5 |= (0x01 << 5);
+//	LPC_IOCON ->PIO0_2 |= (0x01
+//			<< 5);
+//	LPC_IOCON ->PIO1_5 |= (0x01 << 5);
 
 	GPIOSetDir(LED1_PORT, LED1_PIN, OUTPUT);
 	GPIOSetDir(LED2_PORT, LED2_PIN, OUTPUT);
@@ -188,7 +183,7 @@ void GPIOInit(void) {
 	GPIOSetDir(DETECT_PORT, DETECT_PIN, INPUT);
 
 	/* level sensitive,single edge trigger both, active low - don't care. */
-	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 0, 0);
+	GPIOSetInterrupt(BTN_PORT, BTN_PIN, 0, 1, 0);
 	GPIOIntEnable(BTN_PORT, BTN_PIN);
 
 	/* level sensitive,single edge trigger both, active low - don't care. */

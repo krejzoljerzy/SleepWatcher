@@ -96,8 +96,9 @@ void TIMER32_0_IRQHandler(void)
   if ( LPC_TMR32B0->IR & 0x01 )
   {  
 	LPC_TMR32B0->IR = 1;
-	LED2_ON;/* clear interrupt flag */
-	setEvent(BtnHold);
+
+		LED2_ON;/* clear interrupt flag */
+		setEvent(BtnHold);
   }
   if ( LPC_TMR32B0->IR & (0x1<<4) )
   {  
