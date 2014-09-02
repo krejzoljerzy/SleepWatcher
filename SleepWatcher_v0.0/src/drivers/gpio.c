@@ -41,6 +41,14 @@ volatile uint32_t p1_1_counter = 0;
 volatile uint32_t p2_1_counter = 0;
 volatile uint32_t p3_1_counter = 0;
 
+void debounce(){
+	uint32_t debounce_counter=0;
+	do{
+	debounce_counter++;
+	__NOP();
+	}while(debounce_counter<SystemCoreClock/2000);
+}
+
 /*****************************************************************************
  ** Function name:		PIOINT0_IRQHandler
  **
@@ -53,10 +61,8 @@ volatile uint32_t p3_1_counter = 0;
 void PIOINT0_IRQHandler(void) {
 	/* Button interrupt */
 	uint32_t regVal;
-	uint32_t buttonTimePress = 0;
-	uint32_t delay = 0;
-
-	gpio0_counter++;
+	NVIC_DisableIRQ(EINT0_IRQn);
+	debounce();
 	regVal = GPIOIntStatus(BTN_PORT, BTN_PIN);
 	if (regVal) {
 
@@ -68,6 +74,7 @@ void PIOINT0_IRQHandler(void) {
 				clearEvent(BtnHold);
 				setEvent(PowerOff);
 			} else {
+
 				setEvent(BtnPressed);
 			}
 			disable_timer32(0);
@@ -78,6 +85,7 @@ void PIOINT0_IRQHandler(void) {
 
 	}
 	GPIOIntClear(BTN_PORT, BTN_PIN);
+	NVIC_EnableIRQ(EINT0_IRQn);
 	return;
 }
 

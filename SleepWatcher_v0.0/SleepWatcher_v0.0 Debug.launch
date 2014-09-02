@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.crt.dsfdebug.crtmcu.launchType">
 <stringAttribute key=".gdbinit" value=""/>
-<stringAttribute key="LAUNCH_ID.OFSemuDetails" value="LPC-Link (HID)"/>
+<stringAttribute key="LAUNCH_ID.OFSemuDetails" value="LPC-Link (WinUSB) or RDB-Link"/>
 <booleanAttribute key="com.crt.ctrlcenter.crtInit" value="true"/>
 <booleanAttribute key="com.crt.ctrlcenter.mainBreakIsHardware" value="false"/>
 <stringAttribute key="com.crt.ctrlcenter.targetbase" value="NXP LPC11xx (*)"/>

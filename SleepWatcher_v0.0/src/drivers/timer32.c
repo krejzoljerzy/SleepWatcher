@@ -82,6 +82,34 @@ void delay32Ms(uint8_t timer_num, uint32_t delayInMs)
 }
 
 /******************************************************************************
+** Function name:		TIMER16_0_IRQHandler
+**
+** Descriptions:		Timer/Counter 0 interrupt handler
+**				executes each 10ms @ 60 MHz CPU Clock
+**
+** parameters:		None
+** Returned value:	None
+**
+******************************************************************************/
+void TIMER16_0_IRQHandler(void)
+{
+  if ( LPC_TMR16B0->IR & 0x01 )
+  {
+	LPC_TMR16B0->IR = 1;
+
+		LED2_ON;/* clear interrupt flag */
+		setEvent(BtnHold);
+  }
+  if ( LPC_TMR16B0->IR & (0x1<<4) )
+  {
+	LPC_TMR16B0->IR = 0x1<<4;
+
+
+  }
+  return;
+}
+
+/******************************************************************************
 ** Function name:		TIMER32_0_IRQHandler
 **
 ** Descriptions:		Timer/Counter 0 interrupt handler
@@ -157,6 +185,28 @@ void enable_timer32(uint8_t timer_num)
 }
 
 /******************************************************************************
+** Function name:		enable_timer
+**
+** Descriptions:		Enable timer
+**
+** parameters:		timer number: 0 or 1
+** Returned value:	None
+**
+******************************************************************************/
+void enable_timer16(uint8_t timer_num)
+{
+  if ( timer_num == 0 )
+  {
+    LPC_TMR16B0->TCR = 1;
+  }
+  else
+  {
+    LPC_TMR16B1->TCR = 1;
+  }
+  return;
+}
+
+/******************************************************************************
 ** Function name:		disable_timer
 **
 ** Descriptions:		Disable timer
@@ -174,6 +224,28 @@ void disable_timer32(uint8_t timer_num)
   else
   {
     LPC_TMR32B1->TCR = 0;
+  }
+  return;
+}
+
+/******************************************************************************
+** Function name:		disable_timer
+**
+** Descriptions:		Disable timer
+**
+** parameters:		timer number: 0 or 1
+** Returned value:	None
+**
+******************************************************************************/
+void disable_timer16(uint8_t timer_num)
+{
+  if ( timer_num == 0 )
+  {
+    LPC_TMR16B0->TCR = 0;
+  }
+  else
+  {
+    LPC_TMR16B1->TCR = 0;
   }
   return;
 }
@@ -202,6 +274,35 @@ void reset_timer32(uint8_t timer_num)
     regVal = LPC_TMR32B1->TCR;
     regVal |= 0x02;
     LPC_TMR32B1->TCR = regVal;
+  }
+  return;
+}
+
+
+/******************************************************************************
+** Function name:		reset_timer
+**
+** Descriptions:		Reset timer
+**
+** parameters:		timer number: 0 or 1
+** Returned value:	None
+**
+******************************************************************************/
+void reset_timer16(uint8_t timer_num)
+{
+  uint32_t regVal;
+
+  if ( timer_num == 0 )
+  {
+    regVal = LPC_TMR16B0->TCR;
+    regVal |= 0x02;
+    LPC_TMR16B0->TCR = regVal;
+  }
+  else
+  {
+    regVal = LPC_TMR16B1->TCR;
+    regVal |= 0x02;
+    LPC_TMR16B1->TCR = regVal;
   }
   return;
 }
@@ -258,6 +359,60 @@ void TIMInit(uint8_t timer_num, uint32_t TimerInterval)
   }
   return;
 }
+
+/******************************************************************************
+** Function name:		init_timer
+**
+** Descriptions:		Initialize timer, set timer interval, reset timer,
+**				install timer interrupt handler
+**
+** parameters:		timer number and timer interval
+** Returned value:	None
+**
+******************************************************************************/
+void TIMInit16(uint8_t timer_num, uint32_t TimerInterval)
+{
+  if ( timer_num == 0 )
+  {
+    /* Some of the I/O pins need to be clearfully planned if
+    you use below module because JTAG and TIMER CAP/MAT pins are muxed. */
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<9);
+
+    LPC_TMR16B0->MR0 = TimerInterval;
+#if TIMER_MATCH
+	LPC_TMR32B0->EMR &= ~(0xFF<<4);
+	LPC_TMR32B0->EMR |= ((0x3<<4)|(0x3<<6)|(0x3<<8)|(0x3<<10));	/* MR0/1/2/3 Toggle */
+#else
+	/* Capture 0 on rising edge, interrupt enable. */
+	//LPC_TMR32B0->CCR = (0x1<<0)|(0x1<<2);
+#endif
+    LPC_TMR32B0->MCR = 5;			/* Interrupt and Stop on MR0 */
+
+    /* Enable the TIMER0 Interrupt */
+    NVIC_EnableIRQ(TIMER_32_0_IRQn);
+  }
+  else if ( timer_num == 1 )
+  {
+    /* Some of the I/O pins need to be clearfully planned if
+    you use below module because JTAG and TIMER CAP/MAT pins are muxed. */
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<10);
+
+    LPC_TMR32B1->MR0 = TimerInterval;
+#if TIMER_MATCH
+	LPC_TMR32B1->EMR &= ~(0xFF<<4);
+	LPC_TMR32B1->EMR |= ((0x3<<4)|(0x3<<6)|(0x3<<8)|(0x3<<10));	/* MR0/1/2 Toggle */
+#else
+	/* Capture 0 on rising edge, interrupt enable. */
+	LPC_TMR32B1->CCR = (0x1<<0)|(0x1<<2);
+#endif
+    LPC_TMR32B1->MCR = 3;			/* Interrupt and Reset on MR0 */
+
+    /* Enable the TIMER1 Interrupt */
+    NVIC_EnableIRQ(TIMER_32_1_IRQn);
+  }
+  return;
+}
+
 /******************************************************************************
 ** Function name:		init_timer32PWM
 **

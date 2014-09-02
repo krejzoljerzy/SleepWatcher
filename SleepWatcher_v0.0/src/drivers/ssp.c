@@ -194,7 +194,7 @@ void SSP_Init( uint8_t portNum )
 	LPC_SSP0->CR0 = 0xC7;
 
 	/* SSPCPSR clock prescale register, master mode, minimum divisor is 0x02 */
-	LPC_SSP0->CPSR = 0x2;
+	LPC_SSP0->CPSR = 0x6;
 
 	for ( i = 0; i < FIFOSIZE; i++ )
 	{
