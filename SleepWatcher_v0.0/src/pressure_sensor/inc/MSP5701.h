@@ -29,6 +29,8 @@ void MSP5701_write(uint8_t command);
 
 void MSP5701_measure_temp(int32_t* temp);
 
+void MSP5701_measure_press(int32_t* press);
+
 
 
 

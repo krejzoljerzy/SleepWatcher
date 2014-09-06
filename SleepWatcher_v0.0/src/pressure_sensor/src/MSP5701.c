@@ -17,19 +17,19 @@
 #define RESET			0x1E
 #define RESULT			0x00,3
 #define PROM0			0xA0,2
-#define C1				0xA2,2
-#define C2				0xA4,2
-#define C3				0xA6,2
-#define C4				0xA8,2
-#define C5				0xAA,2
-#define C6				0xAC,2
+#define C1			0xA2,2
+#define C2			0xA4,2
+#define C3			0xA6,2
+#define C4			0xA8,2
+#define C5			0xAA,2
+#define C6			0xAC,2
 #define PROM7			0xAE,2
 
 #define PRESURE_256		0x40
 #define PRESURE_512		0x42
-#define PRESURE_1024	0x44
-#define PRESURE_2048	0x46
-#define PRESURE_4096	0x48
+#define PRESURE_1024		0x44
+#define PRESURE_2048		0x46
+#define PRESURE_4096		0x48
 
 #define TEMP_256		0x50
 #define TEMP_512		0x52

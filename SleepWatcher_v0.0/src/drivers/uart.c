@@ -29,6 +29,9 @@
 #include "LPC11xx.h"
 #include "type.h"
 #include "uart.h"
+#include "gpio.h"
+#include "board.h"
+#include "events.h"
 
 volatile uint32_t UARTStatus;
 volatile uint8_t  UARTTxEmpty = 1;
@@ -54,6 +57,7 @@ void UART_IRQHandler(void)
   uint8_t Dummy = Dummy;
 
   IIRValue = LPC_UART->IIR;
+
     
   IIRValue >>= 1;			/* skip pending bit in IIR */
   IIRValue &= 0x07;			/* check bit 1~3, interrupt identification */
@@ -85,6 +89,7 @@ void UART_IRQHandler(void)
   {
     /* Receive Data Available */
     UARTBuffer[UARTCount++] = LPC_UART->RBR;
+    setEvent(UART_data);
     if (UARTCount == BUFSIZE)
     {
       UARTCount = 0;		/* buffer overflow */
@@ -405,6 +410,11 @@ void UARTSend(uint8_t *BufferPtr, uint32_t Length)
       Length--;
   }
   return;
+}
+
+uint8_t get_uart_char (){
+  return UARTBuffer[UARTCount-1];
+  UARTCount=0;
 }
 
 /******************************************************************************

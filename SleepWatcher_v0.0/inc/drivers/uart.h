@@ -64,6 +64,7 @@ void ModemInit( void );
 void UARTInit(uint32_t Baudrate);
 void UART_IRQHandler(void);
 void UARTSend(uint8_t *BufferPtr, uint32_t Length);
+uint8_t get_uart_char(void);
 
 #endif /* end __UART_H */
 /*****************************************************************************

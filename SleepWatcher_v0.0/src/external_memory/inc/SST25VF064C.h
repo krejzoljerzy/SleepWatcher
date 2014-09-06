@@ -20,7 +20,7 @@ uint8_t SST25_read_status(void);
 
 uint8_t SST25_is_busy(void);
 
-void SST25_write(uint8_t* buffer, uint32_t address, uint32_t length);
+uint32_t  SST25_write(uint8_t* buffer, uint32_t address, uint32_t length);
 
 void SST25_write_enable(void);
 
