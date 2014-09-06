@@ -413,8 +413,10 @@ void UARTSend(uint8_t *BufferPtr, uint32_t Length)
 }
 
 uint8_t get_uart_char (){
-  return UARTBuffer[UARTCount-1];
+  uint8_t data = UARTBuffer[0];
   UARTCount=0;
+  return data;
+
 }
 
 /******************************************************************************

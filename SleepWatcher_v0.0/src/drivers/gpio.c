@@ -170,8 +170,8 @@ void GPIOInit(void) {
 
 
 	/* Set up NVIC when I/O pins are configured as external interrupts. */
-	NVIC_EnableIRQ(EINT0_IRQn);
-	NVIC_EnableIRQ(EINT1_IRQn);
+//	NVIC_EnableIRQ(EINT0_IRQn);
+//	NVIC_EnableIRQ(EINT1_IRQn);
 	/*NVIC_EnableIRQ(EINT2_IRQn);
 	 NVIC_EnableIRQ(EINT3_IRQn);*/
 

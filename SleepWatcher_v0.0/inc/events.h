@@ -2,7 +2,8 @@ typedef enum {
 	BtnHold=0,
 	BtnPressed,
 	PowerOff,
-	UART_data
+	UART_data,
+	timerEvent,
 }event_t;
 
 typedef struct{

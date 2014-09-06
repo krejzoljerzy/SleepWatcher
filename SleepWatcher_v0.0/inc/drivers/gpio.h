@@ -45,7 +45,11 @@
 #define LED1_STOP enable_timer32(1);/LED1_OFF;
 
 #define POWER_ON GPIOSetValue(POWER_PORT,POWER_PIN,0)
-#define POWER_OFF GPIOSetValue(POWER_PORT,POWER_PIN,1)
+#define POWER_OFF \
+  do{\
+  GPIOSetDir(POWER_PORT,POWER_PIN,INPUT);\
+  GPIOSetValue(POWER_PORT,POWER_PIN,1);\
+  }while(0)\
 
 
 

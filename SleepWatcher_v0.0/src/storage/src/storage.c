@@ -75,7 +75,7 @@ uint32_t storage_save_data(rec_s* record, uint8_t* buffer, uint32_t length) {
 
 void send_data(){
   /* Parse structure in flash */
-  uint8_t pointer=0;
+  uint64_t pointer=0;
   SST25_read((uint8_t*)&read_structure, STORAGE_INFO_ADDRESS + pointer,sizeof(read_structure));
   while(read_structure.rec_index!=-1){
 

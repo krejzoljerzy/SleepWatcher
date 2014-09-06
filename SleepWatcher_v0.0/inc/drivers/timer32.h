@@ -52,6 +52,14 @@ void init_timer32PWM(uint8_t timer_num, uint32_t period, uint8_t match_enable);
 void setMatch_timer32PWM (uint8_t timer_num, uint8_t match_nr, uint32_t value);
 void TIMInit(uint8_t timer_num, uint32_t TimerInterval);
 
+void TIMER16_0_IRQHandler(void);
+void TIMER16_1_IRQHandler(void);
+void enable_timer16(uint8_t timer_num);
+void disable_timer16(uint8_t timer_num);
+void reset_timer16(uint8_t timer_num);
+void init_timer16(uint8_t timer_num, uint32_t timerInterval);
+void TIMInit16(uint8_t timer_num, uint32_t TimerInterval);
+
 #endif /* end __TIMER32_H */
 /*****************************************************************************
 **                            End Of File
