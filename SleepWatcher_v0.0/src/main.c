@@ -18,12 +18,17 @@
 #include "events.h"
 #include "ssp.h"
 #include "uart.h"
+#include "MSP5701.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
 
 #include <cr_section_macros.h>
 
 #define SYSTICK_DELAY		(SystemCoreClock/20)
 volatile uint32_t TimeTick=0;
 static uint32_t measure=0;
+char buffer[10];
 
 // TODO: insert other include files here
 
@@ -57,64 +62,39 @@ static void stop_systick()
 int main(void) {
 
 	SystemCoreClockUpdate();
-
 	GPIOInit();
+	POWER_ON;
+	SSP_IOConfig(SSP_NUM); /* initialize SSP port, share pins with SPI1
+	 on port2(p2.0-3). */
+	SSP_Init(SSP_NUM);
+	UARTInit(115200);
 
 
 
 	TIMInit(0, 2*SystemCoreClock);
 	TIMInit(1, SystemCoreClock);
 
-	POWER_ON;
-	//LED1_BLINK;
-
-	SSP_IOConfig(SSP_NUM); /* initialize SSP port, share pins with SPI1
-	 on port2(p2.0-3). */
-	SSP_Init(SSP_NUM);
-	UARTInit(115200);
-
 	// Initialize SYstick
 	SysTick_Config( SYSTICK_DELAY );
 
 	/* Enable AHB clock to the GPIO domain. */
-	LPC_SYSCON->SYSAHBCLKCTRL |= (1<<6);
+
+
+	MSP5701_init();
+	int32_t temp;
+	int32_t press;
+	MSP5701_measure_temp(&temp);
+
+
+	//LED1_BLINK;
+
+
 
 	// TODO: insert code here
 
-	// Force the counter to be placed into memory
-	// Enter an infinite loop, just incrementing a counter
-	// Dispatch events.
-	uint8_t bufferTX [1];
-	bufferTX[0] = 0x9F;
-	uint8_t bufferRX[3]={0};
-
-	GPIOSetValue(MEM_SS_PORT,MEM_SS_PIN,0);
-
-	SSP_Send(SSP_NUM,bufferTX,1);
-	SSP_Receive(SSP_NUM,bufferRX,3);
-
-	GPIOSetValue(MEM_SS_PORT,MEM_SS_PIN,1);
-
-	bufferTX[0]=0x1E;
-
-	GPIOSetValue(SEN_SS_PORT,MEM_SS_PIN,0);
-
-	SSP_Send(SSP_NUM,bufferTX,1);
-
-	delay32Ms(1,40);
-
-	GPIOSetValue(SEN_SS_PORT,MEM_SS_PIN,1);
-
-	bufferTX[0]=0xA0;
-
-	GPIOSetValue(SEN_SS_PORT,MEM_SS_PIN,0);
-
-	SSP_Send(SSP_NUM,bufferTX,1);
-	SSP_Receive(SSP_NUM,bufferRX,2);
-
-	GPIOSetValue(SEN_SS_PORT,MEM_SS_PIN,1);
 
 	while (1) {
+
 
 		if (checkEvent(BtnPressed)) {
 			// Start measuring.
@@ -124,7 +104,6 @@ int main(void) {
 			if(measure==0){
 				LED1_OFF;
 			}
-			UARTSend("krotko\r\n",8);
 			clearEvent(BtnPressed);
 		}
 		if (checkEvent(PowerOff)) {
@@ -132,21 +111,25 @@ int main(void) {
 			LED2_OFF;
 			POWER_OFF;
 			measure=0;
-			UARTSend("dlugo\r\n",7);
 			clearEvent(PowerOff);
 
 		}
 
 		if(TimeTick&measure)
 		{
-			stop_systick();
+
 			TimeTick=0;
 			/* Do stuff */
 			LED1_TOGGLE;
-			start_systick();
+			MSP5701_measure_press(&press);
+			memset(buffer,0,sizeof(buffer));
+			itoa(press,buffer,10);
+			UARTSend((uint8_t*)buffer,strlen(buffer));
+			UARTSend((uint8_t*)"\r\n",2);
+
 		}
 		else {
-			start_systick();
+
 			__WFI();
 		}
 

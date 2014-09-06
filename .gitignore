@@ -7,3 +7,29 @@ UART/
 timer32/
 SleepWatcher_v0.0/Debug
 CMSISv2p00_LPC11xx/Debug
+systick/.cproject
+systick/.project
+systick/.settings/language.settings.xml
+systick/Common/inc/gpio.h
+systick/Common/src/gpio.c
+systick/Debug/Common/src/gpio.d
+systick/Debug/Common/src/gpio.o
+systick/Debug/Common/src/subdir.mk
+systick/Debug/makefile
+systick/Debug/objects.mk
+systick/Debug/sources.mk
+systick/Debug/src/cr_startup_lpc11.d
+systick/Debug/src/cr_startup_lpc11.o
+systick/Debug/src/subdir.mk
+systick/Debug/src/systicktest.d
+systick/Debug/src/systicktest.o
+systick/Debug/systick.axf
+systick/Debug/systick.map
+systick/Debug/systick_Debug.ld
+systick/Debug/systick_Debug_lib.ld
+systick/Debug/systick_Debug_mem.ld
+systick/Read-me.txt
+systick/src/cr_startup_lpc11.c
+systick/src/systicktest.c
+systick/systick Debug.launch
+systick/systick Release.launch
