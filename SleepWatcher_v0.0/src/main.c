@@ -22,6 +22,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "SST25VF064C.h"
 
 #include <cr_section_macros.h>
 
@@ -29,6 +30,7 @@
 volatile uint32_t TimeTick=0;
 static uint32_t measure=0;
 char buffer[10];
+uint8_t buf8[10];
 
 // TODO: insert other include files here
 
@@ -81,9 +83,12 @@ int main(void) {
 
 
 	MSP5701_init();
+	SST25_init();
+
 	int32_t temp;
 	int32_t press;
 	MSP5701_measure_temp(&temp);
+
 
 
 	//LED1_BLINK;

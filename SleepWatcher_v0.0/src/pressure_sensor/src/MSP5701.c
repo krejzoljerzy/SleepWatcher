@@ -129,7 +129,7 @@ void MSP5701_init(){
 void MSP5701_measure_temp(int32_t* temp){
 
 	MSP5701_write(TEMP_256);
-	delay32Ms(1,10);
+	delay32Ms(1,1);
 	uint32_t d2;
 	int32_t dT;
 	MSP5701_read(&d2,RESULT);
@@ -147,12 +147,12 @@ void MSP5701_measure_press(int32_t* press){
 	int64_t sens;
 	int32_t press_loc;
 	MSP5701_write(PRESURE_256);
-	delay32Ms(1,2);
+	delay32Ms(1,1);
 
 	MSP5701_read(&d1,RESULT);
 
 	MSP5701_write(TEMP_256);
-	delay32Ms(1,2);
+	delay32Ms(1,1);
 	MSP5701_read(&d2,RESULT);
 	dT=d2-c5*POWER_8;
 	off = (c2*POWER_17)+((c4*dT)/POWER_7);
