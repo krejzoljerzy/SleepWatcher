@@ -88,8 +88,13 @@ void UART_IRQHandler(void)
   else if (IIRValue == IIR_RDA)	/* Receive Data Available */
   {
     /* Receive Data Available */
-    UARTBuffer[UARTCount++] = LPC_UART->RBR;
-    setEvent(UART_data);
+
+    UARTBuffer[UARTCount] = LPC_UART->RBR;
+
+	setEvent(UART_data);
+
+    UARTCount++;
+
     if (UARTCount == BUFSIZE)
     {
       UARTCount = 0;		/* buffer overflow */

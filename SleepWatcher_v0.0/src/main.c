@@ -41,6 +41,7 @@ int32_t press;
 uint32_t led_1 = 0;
 uint32_t led_2 = 0;
 uint8_t live = 0;
+uint8_t sleep = 1;
 
 rec_s actual_record =
   { .rec_index = -1, .rec_length = -1, .rec_ptr = -1, .rec_struct_addr = -1 };
@@ -86,8 +87,7 @@ main (void)
 
   while (GPIOGetValue (BTN_PORT, BTN_PIN) == 0)
     ;
-  NVIC_EnableIRQ (EINT0_IRQn);
-  NVIC_EnableIRQ (EINT1_IRQn);
+
   POWER_ON;
 
   SSP_IOConfig (SSP_NUM); /* initialize SSP port, share pins with SPI1
@@ -113,6 +113,13 @@ main (void)
 
   // TODO: insert code here
 
+  NVIC_ClearPendingIRQ (EINT0_IRQn);
+  NVIC_ClearPendingIRQ (EINT1_IRQn);
+  NVIC_EnableIRQ (EINT0_IRQn);
+  NVIC_EnableIRQ (EINT1_IRQn);
+
+  clearAllEvents();
+
   while (1)
     {
 
@@ -125,7 +132,7 @@ main (void)
 	  if (measure == 1)
 	    {
 	      measure = 0;
-	      live=0;
+	      live = 0;
 	      /* Save data info */
 	      storage_save_data_info (&actual_record);
 	      meas_pointer = 0;
@@ -148,6 +155,7 @@ main (void)
 	  measure = 0;
 	  LED1_OFF;
 	  LED2_OFF;
+	  UARTSend ((uint8_t*) "sleep\r\n", 7);
 	  POWER_OFF
 	  ;
 	  while (1)
@@ -168,12 +176,16 @@ main (void)
 	    case 'r':
 	      measure = 0;
 	      /* Save data info */
-	      storage_save_data_info (&actual_record);
+	      if (actual_record.rec_index != -1)
+		{
+		  storage_save_data_info (&actual_record);
+		}
 	      meas_pointer = 0;
 	      stop_systick ();
 	      send_data ();
 	      break;
 	    case 'l':
+	      sleep = 0;
 	      measure = 1;
 	      live = 1;
 	      start_systick ();
@@ -183,9 +195,11 @@ main (void)
 	      measure = 1;
 	      storage_init (&actual_record);
 	      start_systick ();
+	      sleep = 1;
 	      break;
 	    case 's':
 	      live = 0;
+	      sleep = 1;
 	      measure = 0;
 	      /* Save data info */
 	      storage_save_data_info (&actual_record);
@@ -236,7 +250,10 @@ main (void)
 	    }
 
 	}
-      __WFI ();
+      if (sleep == 1)
+	{
+	  __WFI ();
+	}
     }
   return 0;
 }
