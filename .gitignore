@@ -33,3 +33,4 @@ systick/src/cr_startup_lpc11.c
 systick/src/systicktest.c
 systick/systick Debug.launch
 systick/systick Release.launch
+SleepGuard_v0.0/Debug/

@@ -19,16 +19,11 @@
 #include "ssp.h"
 #include "uart.h"
 #include "MSP5701.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
 #include "storage.h"
 #include "SST25VF064C.h"
 
 #define SAMPLE_BUFFER_LENGTH 256
 #define SAMPLE_LENGTH 4
-
-#include <cr_section_macros.h>
 
 #define SYSTICK_DELAY		(SystemCoreClock/20)
 volatile uint32_t TimeTick = 0;
@@ -81,8 +76,6 @@ stop_systick ()
 int
 main (void)
 {
-
-  SystemCoreClockUpdate ();
   GPIOInit ();
 
   while (GPIOGetValue (BTN_PORT, BTN_PIN) == 0)
@@ -93,14 +86,14 @@ main (void)
   SSP_IOConfig (SSP_NUM); /* initialize SSP port, share pins with SPI1
    on port2(p2.0-3). */
   SSP_Init (SSP_NUM);
-  UARTInit (115200);
+  UARTInit (921600);
 
   LED1_ON;
 
   TIMInit (0, 2 * SystemCoreClock);
   TIMInit (1, SystemCoreClock);
-  TIMInit16 (1, SystemCoreClock / 2);
-  TIMInit16 (0, SystemCoreClock / 20);
+  TIMInit16 (1, SystemCoreClock /8000);
+  TIMInit16 (0, SystemCoreClock / 80000);
   enable_timer16 (0);
 
   // Initialize SYstick
@@ -252,6 +245,7 @@ main (void)
 	}
       if (sleep == 1)
 	{
+	  //LPC_PMU->PCON &= ~(1<<1);
 	  __WFI ();
 	}
     }

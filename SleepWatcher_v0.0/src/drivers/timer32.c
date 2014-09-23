@@ -104,8 +104,11 @@ TIMER16_0_IRQHandler (void)
     {
       LPC_TMR16B0->IR = 1;
 
+      if(measure==1){
 	  LED2_OFF;
+      }else {
 	  LED1_OFF;
+      }
 
       disable_timer16(0);
       reset_timer16(0);
@@ -433,7 +436,7 @@ TIMInit16 (uint8_t timer_num, uint32_t TimerInterval)
       LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 7);
 
       LPC_TMR16B0->MR0 = TimerInterval;
-      LPC_TMR16B0->PR =100;
+      LPC_TMR16B0->PR =1000;
 #if TIMER_MATCH
       LPC_TMR32B0->EMR &= ~(0xFF<<4);
       LPC_TMR32B0->EMR |= ((0x3<<4)|(0x3<<6)|(0x3<<8)|(0x3<<10)); /* MR0/1/2/3 Toggle */
@@ -451,7 +454,7 @@ TIMInit16 (uint8_t timer_num, uint32_t TimerInterval)
       /* Some of the I/O pins need to be clearfully planned if
        you use below module because JTAG and TIMER CAP/MAT pins are muxed. */
       LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 8);
-      LPC_TMR16B1->PR =1000;
+      LPC_TMR16B1->PR =10000000;
       LPC_TMR16B1->MR0 = TimerInterval;
 #if TIMER_MATCH
       LPC_TMR32B1->EMR &= ~(0xFF<<4);
