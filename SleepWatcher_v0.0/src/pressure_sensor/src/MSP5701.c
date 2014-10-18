@@ -146,13 +146,13 @@ void MSP5701_measure_press(int32_t* press){
 	int64_t off;
 	int64_t sens;
 	int32_t press_loc;
-	MSP5701_write(PRESURE_256);
-	delay32Ms(1,1);
+	MSP5701_write(PRESURE_4096);
+	delay32Ms(1,10);
 
 	MSP5701_read(&d1,RESULT);
 
-	MSP5701_write(TEMP_256);
-	delay32Ms(1,1);
+	MSP5701_write(TEMP_4096);
+	delay32Ms(1,10);
 	MSP5701_read(&d2,RESULT);
 	dT=d2-c5*POWER_8;
 	off = (c2*POWER_17)+((c4*dT)/POWER_7);
